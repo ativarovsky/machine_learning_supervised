@@ -1,0 +1,134 @@
+---
+title: "Machine learning - Assignment 6"
+author: "Alice Tivarovsky"
+date: "2/27/2020"
+output: 
+  word_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+## Setup 
+
+Loading the necessary packages for data cleaning, modeling, partitioning, nhanes interface, and classification. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+set.seed(100)
+
+library(tidyverse)
+library(caret)
+library(glmnet)
+library(e1071)
+library(RNHANES)
+
+```
+
+Comparison between Classification Trees, SVM and Logistic Regression
+
+The posted article by Yu et al utilized NHANES data from 1999-2004 to predict diabetes and pre-diabetes using Support Vector Machines. You will conduct a similar analysis using data within the NHANES package in R. For this exercise, you will try to predict Diabetes using similar (although not all) variables. The available data is also slightly different, so you likely won't get the same answers.
+
+
+## Number 1: Loading NHANES, Restricting and Partitioning
+
+Restrict the NHANES data to the list of 12 variables below. Partition the data into training and testing using a 70/30 split.
+
+"Age", "Gender", "Race1", "Education", "HHIncome" (DEMO), "Weight", "Height" (BMXBMI), "Pulse" (BPX), "Diabetes" (DIQ), "BMI" (BMXBMI), "PhysActive", "Smoke100" (SMQ)
+
+```{r load and tidy}
+
+# Loading
+demo_99 = nhanes_load_data("DEMO", "1999-2000") 
+demo_01 = nhanes_load_data("DEMO", "2001-2002")
+demo_03 = nhanes_load_data("DEMO", "2003-2004")                           
+
+bmx_99 = nhanes_load_data("BMX", "1999-2000")
+bmx_01 = nhanes_load_data("BMX", "2001-2002")
+bmx_03 = nhanes_load_data("BMX", "2003-2004")  
+
+bpx_99 = nhanes_load_data("BPX", "1999-2000")
+bpx_01 = nhanes_load_data("BPX", "2001-2002")
+bpx_03 = nhanes_load_data("BPX", "2003-2004")  
+
+paq_99 = nhanes_load_data("PAQ", "1999-2000")
+paq_01 = nhanes_load_data("PAQ", "2001-2002")
+paq_03 = nhanes_load_data("PAQ", "2003-2004")  
+
+diq_99 = nhanes_load_data("DIQ", "1999-2000")
+diq_01 = nhanes_load_data("DIQ", "2001-2002")
+diq_03 = nhanes_load_data("DIQ", "2003-2004")  
+
+smq_99 = nhanes_load_data("SMQ", "1999-2000")
+smq_01 = nhanes_load_data("SMQ", "2001-2002")
+smq_03 = nhanes_load_data("SMQ", "2003-2004")  
+                           
+# Joining
+data_99 = 
+  left_join(demo_99, bmx_99, by = "SEQN") %>% 
+  left_join(bpx_99, by = "SEQN") %>% 
+  left_join(paq_99, by = "SEQN") %>% 
+  left_join(diq_99, by = "SEQN") %>% 
+  left_join(smq_99, by = "SEQN") %>% 
+  select("SEQN", "RIDAGEYR", "RIAGENDR", "RIDRETH1", "DMDEDUC2", "INDHHINC", "BMXBMI", "BMXHT", "BMXWT", "BPXPLS", "DIQ010", "PAQ180", "SMQ020") 
+
+data_01 = 
+  left_join(demo_01, bmx_01, by = "SEQN") %>% 
+  left_join(bpx_01, by = "SEQN") %>% 
+  left_join(paq_01, by = "SEQN") %>% 
+  left_join(diq_01, by = "SEQN") %>% 
+  left_join(smq_01, by = "SEQN") %>% 
+  select("SEQN", "RIDAGEYR", "RIAGENDR", "RIDRETH1", "DMDEDUC2", "INDHHINC", "BMXBMI", "BMXHT", "BMXWT", "BPXPLS", "DIQ010", "PAQ180", "SMQ020") 
+
+data_03 = 
+  left_join(demo_03, bmx_03, by = "SEQN") %>% 
+  left_join(bpx_03, by = "SEQN") %>% 
+  left_join(paq_03, by = "SEQN") %>% 
+  left_join(diq_03, by = "SEQN") %>% 
+  left_join(smq_03, by = "SEQN") %>% 
+  select("SEQN", "RIDAGEYR", "RIAGENDR", "RIDRETH1", "DMDEDUC2", "INDHHINC", "BMXBMI", "BMXHT", "BMXWT", "BPXPLS", "DIQ010", "PAQ180", "SMQ020") 
+
+final_data = bind_rows(data_99, data_01, data_03) %>% 
+  janitor::clean_names() %>% 
+  drop_na(diq010)
+```
+
+Partitioning: 
+
+```{r partition}
+
+training_data = final_data$diq010 %>% createDataPartition(p = 0.7, list = F)
+train_data = final_data[training_data, ]
+test_data = final_data[-training_data, ]
+
+
+#Store outcome 
+#alc_cons_train = train_data$alc_consumption
+#alc_cons_test = test_data$alc_consumption
+
+# store matrices excluding outcome
+#train = model.matrix(alc_consumption~., train_data)[,-1]
+#test = model.matrix(alc_consumption~., test_data)[,-1]
+
+```
+
+
+## Number 2: Prediction Models
+
+Construct three prediction models to predict diabetes using the 11 features from NHANES. You will use the following three algorithms to create your prediction models:
+
+a) Classification Tree
+
+b) Support Vector Classifier (i.e. Support Vector Machine with a linear classifier)
+
+c) Logistic regression.
+
+## Classification Tree
+
+```{r}
+
+```
+
+
+
