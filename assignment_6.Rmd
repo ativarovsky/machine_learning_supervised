@@ -23,6 +23,8 @@ library(caret)
 library(glmnet)
 library(e1071)
 library(RNHANES)
+library(rpart)
+library(rpart.plot)
 
 ```
 
@@ -91,7 +93,15 @@ data_03 =
 
 final_data = bind_rows(data_99, data_01, data_03) %>% 
   janitor::clean_names() %>% 
-  drop_na(diq010)
+  filter(diq010 %in% c(1,2)) %>% 
+  mutate(diq010 = as.factor(diq010), 
+         riagendr = as.factor(riagendr), 
+         ridreth1 = as.factor(ridreth1), 
+         dmdeduc2 = as.factor(dmdeduc2), 
+         indhhinc = as.factor(indhhinc), 
+         paq180 = as.factor(paq180), 
+         smq020 = as.factor(smq020)) %>% 
+  drop_na()
 ```
 
 Partitioning: 
@@ -126,7 +136,24 @@ c) Logistic regression.
 
 ## Classification Tree
 
-```{r}
+```{r classification tree}
+train_control = trainControl(method = "cv", number = 10)
+grid_2 = expand.grid(cp = seq(0.001, 0.4, by = 0.01))
+tree_diabetes = train(diq010 ~., data = train_data,  method = "rpart", trControl = train_control, tuneGrid = grid_2)
+tree_diabetes$bestTune
+
+tree_diabetes
+varImp(tree_diabetes)
+rpart.plot(tree_diabetes$finalModel)
+
+```
+
+## Support Vector Classifier
+
+```{r svm}
+
+svm_diabetes = svm(diq010 ~ ., data = train_data, kernel="linear", cost=1, scale=TRUE)
+print(svm_diabetes)
 
 ```
 
