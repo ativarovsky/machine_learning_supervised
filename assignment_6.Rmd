@@ -148,16 +148,31 @@ rpart.plot(tree_diabetes$finalModel)
 
 ```
 
-The best Cp was 0.0047. 
+The optimal Cp for highest was 0.0047. 
 
 ## Support Vector Classifier
 
 ```{r svm}
 
-svm_diabetes = svm(diq010 ~ ., data = train_data, kernel="linear", cost=1, scale=TRUE)
+svm_diabetes = svm(diq010 ~ ., data = train_data, kernel="linear", cost = 1, scale = TRUE)
 print(svm_diabetes)
+
+new_data = train_data[-11]
+
+svm_pred = predict(svm_diabetes, new_data)
+table(svm_pred, train_data$diq010)
+
+misClasificError = mean(svm_pred != train_data$diq010, na.rm = T)
+print(paste('Accuracy Model 1',1 - misClasificError))
+
+features = new_data
+outcome = train_data$diq010
+
+svm_tune = tune(svm, diq010 ~ ., data = train_data,  kernel="linear", range=list(cost=10^(-1:1)))
+
+summary(svm_tune)
 
 ```
 
-
+Accuracy of the SVM model was 0.902595827268316. 
 
