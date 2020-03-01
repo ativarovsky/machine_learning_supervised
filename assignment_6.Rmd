@@ -138,7 +138,7 @@ c) Logistic regression.
 
 ```{r classification tree}
 train_control = trainControl(method = "cv", number = 10)
-grid_2 = expand.grid(cp = seq(0.001, 0.4, by = 0.01))
+grid_2 = expand.grid(cp = seq(0.0001, 0.011, by = 0.0001))
 tree_diabetes = train(diq010 ~., data = train_data,  method = "rpart", trControl = train_control, tuneGrid = grid_2)
 tree_diabetes$bestTune
 
@@ -147,6 +147,8 @@ varImp(tree_diabetes)
 rpart.plot(tree_diabetes$finalModel)
 
 ```
+
+The best Cp was 0.0047. 
 
 ## Support Vector Classifier
 
