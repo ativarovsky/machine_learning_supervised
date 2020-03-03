@@ -25,7 +25,7 @@ library(e1071)
 library(RNHANES)
 library(rpart)
 library(rpart.plot)
-
+library(pROC)
 ```
 
 Comparison between Classification Trees, SVM and Logistic Regression
@@ -112,15 +112,6 @@ training_data = final_data$diq010 %>% createDataPartition(p = 0.7, list = F)
 train_data = final_data[training_data, ]
 test_data = final_data[-training_data, ]
 
-
-#Store outcome 
-#alc_cons_train = train_data$alc_consumption
-#alc_cons_test = test_data$alc_consumption
-
-# store matrices excluding outcome
-#train = model.matrix(alc_consumption~., train_data)[,-1]
-#test = model.matrix(alc_consumption~., test_data)[,-1]
-
 ```
 
 
@@ -134,9 +125,10 @@ b) Support Vector Classifier (i.e. Support Vector Machine with a linear classifi
 
 c) Logistic regression.
 
-## Classification Tree
+### Classification Tree
 
 ```{r classification tree}
+
 train_control = trainControl(method = "cv", number = 10)
 grid_2 = expand.grid(cp = seq(0.0001, 0.011, by = 0.0001))
 tree_diabetes = train(diq010 ~., data = train_data,  method = "rpart", trControl = train_control, tuneGrid = grid_2)
@@ -148,13 +140,13 @@ rpart.plot(tree_diabetes$finalModel)
 
 ```
 
-The optimal Cp for highest was 0.0047. 
+The optimal Cp was 0.0047. 
 
-## Support Vector Classifier
+### Support Vector Classifier
 
 ```{r svm}
 
-svm_diabetes = svm(diq010 ~ ., data = train_data, kernel="linear", cost = 1, scale = TRUE)
+svm_diabetes = svm(diq010 ~ ., data = train_data, kernel="linear", cost = 0.1, scale = TRUE)
 print(svm_diabetes)
 
 new_data = train_data[-11]
@@ -174,5 +166,70 @@ summary(svm_tune)
 
 ```
 
-Accuracy of the SVM model was 0.902595827268316. 
+Accuracy of the SVM model was also 0.90. 
+
+### Logistic Regression 
+
+```{r logistic}
+
+log_model = glm(diq010 ~ ., data = train_data, family = binomial(link = "logit")) 
+log_model
+
+# Make predictions
+log_model %>% predict(test_data)
+
+```
+
+
+## Number 3 
+
+In the classification tree, the optimal hyperparameter Cp for highest was 0.0047. 
+
+```{r}
+
+train_control = trainControl(method = "cv", number = 10)
+grid_2 = expand.grid(cp = seq(0.0001, 0.011, by = 0.0001))
+tree_diabetes = train(diq010 ~., data = train_data,  method = "rpart", trControl = train_control, tuneGrid = grid_2)
+tree_diabetes$bestTune
+
+tree_diabetes
+varImp(tree_diabetes)
+rpart.plot(tree_diabetes$finalModel)
+
+```
+
+The accuracy of the classification tree at a complexity parameter of 0.0047 was 90.26%. The accuracy of the support vector machine was 90.26%. 
+
+Log model accuracy: 
+
+```{r}
+
+pred_log = predict(log_model, train_data)
+pred_log_class = ifelse(pred_log > 0.5,1,0)
+misClasificError = mean(pred_log_class != train_data$diq010, na.rm = T)
+print(paste('Accuracy Log Model',1 - misClasificError))
+
+```
+
+The accuracy of the logistic model is only 8.35%. 
+
+## Number 4
+
+The classification tree appears to have been the most appropriate here. The support vector machine did not work as expected. We will now calculate accuracy in the final test set for the classification tree. 
+
+```{r}
+
+pred_diabetes<-predict(tree_diabetes, test_data)
+pred_diabetes_prob<-predict(tree_diabetes, test_data, type="prob")
+
+eval.results<-confusionMatrix(pred_diabetes, test_data$diq010, positive = "1")
+print(eval.results)
+
+```
+
+The accuracy for the classification tree is 90.26%. 
+
+## Number 5
+
+Two limitations 
 
