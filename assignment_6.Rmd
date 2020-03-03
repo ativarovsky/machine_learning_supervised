@@ -231,5 +231,7 @@ The accuracy for the classification tree is 90.26%.
 
 ## Number 5
 
-Two limitations 
+One major limitation of classification trees is model instability. Updates to the data, which occur with every annual NHANES cycle, are likely to completely change the structure of the tree, thereby limiting its interpretability over the long term. 
+
+Another limitation of classification trees is that the algorithm is "greedy" - meaning it only looks at the current node, not downstream nodes to make a splitting decision.  
 
